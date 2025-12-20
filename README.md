@@ -37,17 +37,17 @@ To compile the question x:
 
 ```sh
 gcc questionx.c -o enseash
-./enseah
+./enseash
 ```
 ---
 
 ## Usage
 Use the most advanced version of the shell for arguments commands (question7.c). Here is an example of how to use it:
-
-<img width="470" height="171" alt="image" src="https://github.com/user-attachments/assets/4d2d781f-2de0-4723-a73a-b0f20ffe3451" />
+<p align="center">
+  <img width="470" height="171" alt="image" src="https://github.com/user-attachments/assets/4d2d781f-2de0-4723-a73a-b0f20ffe3451" />
+</p>
 
 ---
-
 
 ## Author
 
