@@ -17,7 +17,7 @@ void execute_command(){
             execlp(DATE_COMMAND, DATE_COMMAND, NULL);
         }
         else{
-            execlp(buffer, buffer, NULL);
+            execlp(buffer, buffer, NULL);    //Here we will execute whatever we wrote in the buffer by finding the path, with 0 limitations.
         }
 
         exit(EXIT_FAILURE);
