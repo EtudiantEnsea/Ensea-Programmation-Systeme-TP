@@ -1,6 +1,12 @@
 #include "question7.h"
 
 void display_prompt_with_status(int status, long duration_ms){
+    /*
+     * Displays the shell prompt including:
+     *  - the exit status or signal of the previous command
+     *  - the execution time in milliseconds
+     */
+    
     char prompt[BUFFER_SIZE];
     int prompt_length;
 
@@ -19,10 +25,13 @@ void display_prompt_with_status(int status, long duration_ms){
 
 
 int execute_command(long int *duration_ms){
-    /* 
-     * Reads a command from standard input,
-     * handles shell termination (exit / Ctrl+D),
-     * and executes the simple command in a child process.
+    /*
+     * Reads a command from standard input, parses arguments,
+     * handles input/output redirections,
+     * executes the command in a child process,
+     * and measures its execution time.
+     *
+     * The shell terminates on "exit" command or Ctrl+D.
      */
 
     char buffer[BUFFER_SIZE] = {0};
@@ -37,7 +46,10 @@ int execute_command(long int *duration_ms){
 
     struct timespec start_time, end_time;
     
+    /* Read user input from standard input */
     bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+    
+    /* Ctrl+D: end of input, exit the shell cleanly */
     if(bytes_read == 0){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
@@ -45,11 +57,13 @@ int execute_command(long int *duration_ms){
 
     buffer[bytes_read - 1] = '\0';
 
+    /* Built-in command: exit the shell */
     if(strcmp(buffer, EXIT_COMMAND) == 0){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
 
+    /* Split command line into arguments for execvp */
     token = strtok(buffer, ARG_SEPARATOR);
     while (token != NULL) {
         argv[argc++] = token;
@@ -57,6 +71,7 @@ int execute_command(long int *duration_ms){
     }
     argv[argc] = NULL;
 
+    /* Detect input/output redirections (< and >) */
     for(int i = 0; argv[i]!= NULL ; i++){
         if(strcmp(argv[i], "<") == 0){
             input_fd = open(argv[i+1], O_RDONLY);
@@ -70,8 +85,10 @@ int execute_command(long int *duration_ms){
         }
     }
 
+    /* Start measuring execution time */
     clock_gettime(CLOCK_MONOTONIC, &start_time);
 
+    /* Child process: apply redirections if any */
     if (fork() == 0)
     {
         if (input_fd != ERROR_REDIRECTION) {
@@ -82,7 +99,7 @@ int execute_command(long int *duration_ms){
             dup2(output_fd, STDOUT_FILENO);
             close(output_fd);
         }
-
+        /* Execute command */
         if (argc == 0){
             execlp(DATE_COMMAND, DATE_COMMAND, NULL);
         }
@@ -94,8 +111,10 @@ int execute_command(long int *duration_ms){
     }
     
     wait(&status);
+    /* Stop measuring execution time */
     clock_gettime(CLOCK_MONOTONIC, &end_time);
 
+    /* Compute execution duration in milliseconds */
     *duration_ms = (end_time.tv_sec - start_time.tv_sec) * 1000 + (end_time.tv_nsec - start_time.tv_nsec) / 1000000;
 
     return status;
@@ -110,6 +129,10 @@ void display_regular_prompt(){
 }
 
 int main(){
+    /*
+     * Main REPL loop:
+     * display prompt, execute command, then display status
+     */
 
     int status = 0;
     long int duration_ms = 0;
