@@ -19,17 +19,12 @@ void display_prompt_with_status(int status, long duration_ms){
 
 
 int execute_command(long int *duration_ms){
-    /* 
-     * Reads a command from standard input,
-     * handles shell termination (exit / Ctrl+D),
-     * and executes the simple command in a child process.
-     */
-
+    
     char buffer[BUFFER_SIZE] = {0};
     int bytes_read;
     int status;
     struct timespec start_time, end_time;
-    char *argv[MAX_ARGS] = {0};
+    char *argv[MAX_ARGS] = {0};    //We will add this to point towards an array where we will put our commands to be executed.
     int argc = 0;
     char *token;
 
@@ -46,8 +41,9 @@ int execute_command(long int *duration_ms){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
-
-    token = strtok(buffer, ARG_SEPARATOR);
+        /*We will add the following code, below this comment, in order to separate what we filled in the buffer into different commands within the same command, so we can use arguments,
+        and store them into the argv which is a vector, as an example we have the "fortune -s", that will go search for short fortune sayings.*/
+    token = strtok(buffer, ARG_SEPARATOR);    //We will add 
     while (token != NULL) {
         argv[argc++] = token;
         token = strtok(NULL, ARG_SEPARATOR);
@@ -62,7 +58,7 @@ int execute_command(long int *duration_ms){
             execlp(DATE_COMMAND, DATE_COMMAND, NULL);
         }
         else{
-            execvp(argv[0], argv);
+            execvp(argv[0], argv); //Here we will change the execlp to execvp to execute a bunch of vector stored in the argv.
         }
 
         exit(EXIT_FAILURE);
