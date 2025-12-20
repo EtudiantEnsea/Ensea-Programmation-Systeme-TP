@@ -4,10 +4,10 @@ void display_prompt_with_status(int status){
     char prompt[BUFFER_SIZE];
     int prompt_length;
 
-    if(WIFEXITED(status)){
-        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_EXIT_FORMAT, WEXITSTATUS(status));
+    if(WIFEXITED(status)){    //If our child process ended in a natural way, we print this message.
+        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_EXIT_FORMAT, WEXITSTATUS(status));    
     }
-    else if (WIFSIGNALED(status)) {
+    else if (WIFSIGNALED(status)) {    //If our child process ended in a non natural way, or got murdered, we print this message.
         prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_SIGNAL_FORMAT, WTERMSIG(status));
     } 
     else {
@@ -19,15 +19,10 @@ void display_prompt_with_status(int status){
 
 
 int execute_command(){
-    /* 
-     * Reads a command from standard input,
-     * handles shell termination (exit / Ctrl+D),
-     * and executes the simple command in a child process.
-     */
 
     char buffer[BUFFER_SIZE] = {0};
     int bytes_read;
-    int status;
+    int status;    //The status variable is used to store the way our child process was ended, whether it was executed (natural way) or it was killed (unnatural way)
 
     bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 
