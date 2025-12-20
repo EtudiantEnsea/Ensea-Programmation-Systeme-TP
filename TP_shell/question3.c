@@ -1,11 +1,6 @@
 #include "question3.h"
 
 void execute_command(){
-    /* 
-     * Reads a command from standard input,
-     * handles shell termination (exit / Ctrl+D),
-     * and executes the command in a child process.
-     */
 
     char buffer[BUFFER_SIZE] = {0};
     int bytes_read;
@@ -13,14 +8,14 @@ void execute_command(){
 
     bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 
-    if(bytes_read == 0){
+    if(bytes_read <= 0){     //Here we put an if statement to handle the Ctrl + D, since if bytes_read = -1 it means that we pressed Ctrl + D.
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
 
     buffer[bytes_read - 1] = '\0';
 
-    if(strcmp(buffer, EXIT_COMMAND) == 0){
+    if(strcmp(buffer, EXIT_COMMAND) == 0){    //We do an if statement, so that if we type "exit" that is EXIT_COMMAND defined in the file question3.h .
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
