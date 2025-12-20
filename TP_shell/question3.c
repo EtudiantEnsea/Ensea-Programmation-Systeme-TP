@@ -4,7 +4,7 @@ void execute_command(){
 
     char buffer[BUFFER_SIZE] = {0};
     int bytes_read;
-    int status;
+    int status;    //We will use this variable in the fourth question.
 
     bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
 
