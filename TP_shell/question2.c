@@ -2,42 +2,44 @@
 
 void execute_command(){
 
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_read;
+    char buffer[BUFFER_SIZE] = {0};
+    int bytes_read;
+    int status;
 
-        bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
+    bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+    buffer[bytes_read - 1] = '\0';
 
-        buffer[bytes_read - 1] = '\0';
-
-
-        if (strncmp(buffer, EXIT_COMMAND, strlen(EXIT_COMMAND) + 1) == 0)
-        {
-            write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
-            exit(EXIT_SUCCESS);
+    if (fork() == 0)
+    {
+        if (strcmp(buffer, EMPTY_COMMAND) == 0){
+            execlp(DATE_COMMAND, DATE_COMMAND, NULL);
         }
-
-        if(strcmp(buffer, "exit") == 0){
-            exit(EXIT_FAILURE);
-        }
-
-
-        pid_t pid = fork();
-
-        if (pid == 0)
-        {
-            if (strcmp(buffer, "") == 0){
-                execlp("date", "date", NULL);
-            }
-            else{
+        else{
             execlp(buffer, buffer, NULL);
-            }
-
-            _exit(EXIT_FAILURE);
-        }
-        else if (pid > 0)
-        {
-            wait(NULL);
         }
 
+        exit(EXIT_FAILURE);
+    }
 
+    wait(&status);
+}
+
+void display_welcome_prompt(void){
+    write(STDOUT_FILENO, WELCOME_PROMPT, strlen(WELCOME_PROMPT));
+}
+
+void display_regular_prompt(){
+    write(STDOUT_FILENO, REGULAR_PROMPT, strlen(REGULAR_PROMPT));
+}
+
+int main(){
+    
+    display_welcome_prompt();
+
+    while(1){
+        display_regular_prompt();
+        execute_command();
+    }
+
+    return EXIT_SUCCESS;
 }

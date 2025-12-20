@@ -1,80 +1,83 @@
 #include "question4.h"
 
-void execute(void)
-{
-    static int last_status;
-    static int has_status = 0;
+void display_prompt_with_status(int status){
+    char prompt[BUFFER_SIZE];
+    int prompt_length;
 
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_read;
-    pid_t pid;
+    if(WIFEXITED(status)){
+        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_EXIT_FORMAT, WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status)) {
+        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_SIGNAL_FORMAT, WTERMSIG(status));
+    } 
+    else {
+        prompt_length = snprintf(prompt, BUFFER_SIZE, REGULAR_PROMPT);
+    }
 
-    display_prompt_with_status(last_status, has_status);
+    write(STDOUT_FILENO, prompt, prompt_length);
+}
 
-    bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE - 1);
 
-    if (bytes_read == 0)
-    {
+int execute_command(){
+    /* 
+     * Reads a command from standard input,
+     * handles shell termination (exit / Ctrl+D),
+     * and executes the simple command in a child process.
+     */
+
+    char buffer[BUFFER_SIZE] = {0};
+    int bytes_read;
+    int status;
+
+    bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+
+    if(bytes_read == 0){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
 
     buffer[bytes_read - 1] = '\0';
 
-    if (strncmp(buffer, EXIT_COMMAND, strlen(EXIT_COMMAND) + 1) == 0)
-    {
+    if(strcmp(buffer, EXIT_COMMAND) == 0){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
     }
 
-    pid = fork();
-
-    if (pid == 0)
+    if (fork() == 0)
     {
-        if (strcmp(buffer, "") == 0){
-            execlp("date", "date", NULL);
+        if (strcmp(buffer, EMPTY_COMMAND) == 0){
+            execlp(DATE_COMMAND, DATE_COMMAND, NULL);
         }
         else{
             execlp(buffer, buffer, NULL);
         }
 
-        _exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
     }
-    else if (pid > 0)
-    {
-        wait(&last_status);
-        has_status = 1;
-    }
+    
+    wait(&status);
+    return status;
 }
 
-void display_prompt_with_status(int status, int has_status)
-{
-    char buffer[64];
-    int length;
+void display_welcome_prompt(void){
+    write(STDOUT_FILENO, WELCOME_PROMPT, strlen(WELCOME_PROMPT));
+}
 
-    if (!has_status)
-    {
-        write(STDOUT_FILENO, NORMAL_PROMPT, strlen(NORMAL_PROMPT));
-        return;
-    }
+void display_regular_prompt(){
+    write(STDOUT_FILENO, REGULAR_PROMPT, strlen(REGULAR_PROMPT));
+}
 
-    if (WIFEXITED(status))
-    {
-        length = snprintf(buffer, sizeof(buffer),
-                          PROMPT_EXIT_FORMAT,
-                          WEXITSTATUS(status));
-    }
-    else if (WIFSIGNALED(status))
-    {
-        length = snprintf(buffer, sizeof(buffer),
-                          PROMPT_SIGNAL_FORMAT,
-                          WTERMSIG(status));
-    }
-    else
-    {
-        write(STDOUT_FILENO, NORMAL_PROMPT, strlen(NORMAL_PROMPT));
-        return;
+int main(){
+
+    int status = 0;
+    
+    display_welcome_prompt();
+    display_regular_prompt();
+
+    while(1){
+        status = execute_command();
+        display_prompt_with_status(status);
     }
 
-    write(STDOUT_FILENO, buffer, length);
+    return EXIT_SUCCESS;
 }
