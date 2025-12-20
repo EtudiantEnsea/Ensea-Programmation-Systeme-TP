@@ -5,10 +5,10 @@ void display_prompt_with_status(int status){
     int prompt_length;
 
     if(WIFEXITED(status)){    //If our child process ended in a natural way, we print this message.
-        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_EXIT_FORMAT, WEXITSTATUS(status));    
+        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_EXIT_FORMAT, WEXITSTATUS(status));    //We change the prompt format to include the type of death of the child process.
     }
     else if (WIFSIGNALED(status)) {    //If our child process ended in a non natural way, or got murdered, we print this message.
-        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_SIGNAL_FORMAT, WTERMSIG(status));
+        prompt_length = snprintf(prompt, BUFFER_SIZE, PROMPT_SIGNAL_FORMAT, WTERMSIG(status));    //We change the prompt here too.
     } 
     else {
         prompt_length = snprintf(prompt, BUFFER_SIZE, REGULAR_PROMPT);
