@@ -26,17 +26,18 @@ int execute_command(long int *duration_ms){
      */
 
     char buffer[BUFFER_SIZE] = {0};
+    char *argv[MAX_ARGS] = {0};
+    char *token;
+
     int bytes_read;
     int status;
-    struct timespec start_time, end_time;
-    char *argv[MAX_ARGS] = {0};
     int argc = 0;
-    char *token;
-    int input_fd = -1;
-    int output_fd = -1;
+    int input_fd = ERROR_REDIRECTION;
+    int output_fd = ERROR_REDIRECTION;
 
+    struct timespec start_time, end_time;
+    
     bytes_read = read(STDIN_FILENO, buffer, BUFFER_SIZE);
-
     if(bytes_read == 0){
         write(STDOUT_FILENO, EXIT_MESSAGE, strlen(EXIT_MESSAGE));
         exit(EXIT_SUCCESS);
@@ -60,10 +61,12 @@ int execute_command(long int *duration_ms){
         if(strcmp(argv[i], "<") == 0){
             input_fd = open(argv[i+1], O_RDONLY);
             argv[i] = NULL;
+            break;
         }
         if (strcmp(argv[i], ">") == 0){
             output_fd = open(argv[i+1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
             argv[i] = NULL;
+            break;
         }
     }
 
@@ -71,11 +74,11 @@ int execute_command(long int *duration_ms){
 
     if (fork() == 0)
     {
-        if (input_fd != -1) {
+        if (input_fd != ERROR_REDIRECTION) {
             dup2(input_fd, STDIN_FILENO);
             close(input_fd);
         }
-        if (output_fd != -1) {
+        if (output_fd != ERROR_REDIRECTION) {
             dup2(output_fd, STDOUT_FILENO);
             close(output_fd);
         }
